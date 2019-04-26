@@ -1,0 +1,417 @@
+---
+title: "Sentiment_Analysis"
+author: "J Argueta"
+date: "4/24/2019"
+output: html_document
+---
+
+Remove Objects from Environment
+```{r}
+ls()
+rm(list = ls())
+```
+
+Load packages
+```{r message=FALSE}
+library(genius)#Add lyrics to a data frame
+library(dplyr)
+library(tidytext)
+lexicon <- get_sentiments("afinn")
+```
+
+Load data
+```{r}
+top100songs <- readRDS("top100songs.rds")
+write.csv(top100songs, "top100songs.csv")
+```
+
+2. Data cleaning
+```{r}
+top100songsv2 <- top100songs %>% 
+  mutate( Track = gsub("'", "", Track), #remove '
+          Track = gsub("\\s*\\([^\\)]+\\)\\s*$", "", Track), #remove information between parenthesis
+          Track = gsub("+", "", Track),
+          Sentiment = TotalStreams*0)
+head(top100songsv2)
+```
+
+```{r}
+#I need to repeat this 100 times
+
+#1st get the song lyrics
+song1<-genius_lyrics(artist=top100songsv2$Artist[1],song = top100songsv2$Track[1])#i'll have to change the counter from 1 to 100
+
+#2nd get the sentiment for each song
+song1sentiment <- song1 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+
+#3rd append this score to each song
+top100songsv2$Sentiment[1] <- song1sentiment$score[1]
+```
+
+```{r}
+sentiments <- sapply(
+  X = 1:nrow(top100songsv2)
+  , FUN = function(row_num, topSongTBL){
+      
+      sentiment <- NA
+      tryCatch({
+          lyricTBL <- genius::genius_lyrics(
+            artist = topSongTBL[["Artist"]][row_num]
+            , song = topSongTBL[["Track"]][row_num]
+          )
+      
+        sentiment <- lyricTBL %>%
+          unnest_tokens(word, lyric) %>%
+          select(word) %>%
+          inner_join(lexicon) %>%
+          summarise(score = sum(score))
+        
+      }, error = function(e){
+          print(paste0("Failed for song name: ", topSongTBL[["Track"]][row_num]))
+      })
+      
+      return(sentiment)
+  }
+  , topSongTBL = top100songsv2
+)
+```
+
+
+###NEEDS TO BE FIX PART 1
+```{r}
+song1<-genius_lyrics(artist=top100songsv2$Artist[1],song = top100songsv2$Track[1])
+song2<-genius_lyrics(artist=top100songsv2$Artist[2],song = top100songsv2$Track[2])
+song3<-genius_lyrics(artist=top100songsv2$Artist[3],song = top100songsv2$Track[3])
+song4<-genius_lyrics(artist=top100songsv2$Artist[4],song = top100songsv2$Track[4])
+song5<-genius_lyrics(artist=top100songsv2$Artist[5],song = top100songsv2$Track[5])
+song6<-genius_lyrics(artist=top100songsv2$Artist[6],song = top100songsv2$Track[6])
+song7<-genius_lyrics(artist=top100songsv2$Artist[7],song = top100songsv2$Track[7])
+song8<-genius_lyrics(artist=top100songsv2$Artist[8],song = top100songsv2$Track[8])
+song9<-genius_lyrics(artist=top100songsv2$Artist[9],song = top100songsv2$Track[9])
+song10<-genius_lyrics(artist=top100songsv2$Artist[10],song = top100songsv2$Track[10])
+song11<-genius_lyrics(artist=top100songsv2$Artist[11],song = top100songsv2$Track[11])
+song12<-genius_lyrics(artist=top100songsv2$Artist[12],song = top100songsv2$Track[12])
+#song13<-genius_lyrics(artist=top100songsv2$Artist[13],song = top100songsv2$Track[13])
+#song14<-genius_lyrics(artist=top100songsv2$Artist[14],song = top100songsv2$Track[14])
+song15<-genius_lyrics(artist=top100songsv2$Artist[15],song = top100songsv2$Track[15])
+song16<-genius_lyrics(artist=top100songsv2$Artist[16],song = top100songsv2$Track[16])
+song17<-genius_lyrics(artist=top100songsv2$Artist[17],song = top100songsv2$Track[17])
+song18<-genius_lyrics(artist=top100songsv2$Artist[18],song = top100songsv2$Track[18])
+song19<-genius_lyrics(artist=top100songsv2$Artist[19],song = top100songsv2$Track[19])
+song20<-genius_lyrics(artist=top100songsv2$Artist[20],song = top100songsv2$Track[20])
+song21<-genius_lyrics(artist=top100songsv2$Artist[21],song = top100songsv2$Track[21])
+song22<-genius_lyrics(artist=top100songsv2$Artist[22],song = top100songsv2$Track[22])
+#song23<-genius_lyrics(artist=top100songsv2$Artist[23],song = top100songsv2$Track[23])
+song24<-genius_lyrics(artist=top100songsv2$Artist[24],song = top100songsv2$Track[24])
+song25<-genius_lyrics(artist=top100songsv2$Artist[25],song = top100songsv2$Track[25])
+song26<-genius_lyrics(artist=top100songsv2$Artist[26],song = top100songsv2$Track[26])
+song27<-genius_lyrics(artist=top100songsv2$Artist[27],song = top100songsv2$Track[27])
+song28<-genius_lyrics(artist=top100songsv2$Artist[28],song = top100songsv2$Track[28])
+song29<-genius_lyrics(artist=top100songsv2$Artist[29],song = top100songsv2$Track[29])
+song30<-genius_lyrics(artist=top100songsv2$Artist[30],song = top100songsv2$Track[30])
+song31<-genius_lyrics(artist=top100songsv2$Artist[31],song = top100songsv2$Track[31])
+song32<-genius_lyrics(artist=top100songsv2$Artist[32],song = top100songsv2$Track[32])
+song33<-genius_lyrics(artist=top100songsv2$Artist[33],song = top100songsv2$Track[33])
+song34<-genius_lyrics(artist=top100songsv2$Artist[34],song = top100songsv2$Track[34])
+song35<-genius_lyrics(artist=top100songsv2$Artist[35],song = top100songsv2$Track[35])
+song36<-genius_lyrics(artist=top100songsv2$Artist[36],song = top100songsv2$Track[36])
+song37<-genius_lyrics(artist=top100songsv2$Artist[37],song = top100songsv2$Track[37])
+song38<-genius_lyrics(artist=top100songsv2$Artist[38],song = top100songsv2$Track[38])
+song39<-genius_lyrics(artist=top100songsv2$Artist[39],song = top100songsv2$Track[39])
+song40<-genius_lyrics(artist=top100songsv2$Artist[40],song = top100songsv2$Track[40])
+song41<-genius_lyrics(artist=top100songsv2$Artist[41],song = top100songsv2$Track[41])
+song42<-genius_lyrics(artist=top100songsv2$Artist[42],song = top100songsv2$Track[42])
+song43<-genius_lyrics(artist=top100songsv2$Artist[43],song = top100songsv2$Track[43])
+song44<-genius_lyrics(artist=top100songsv2$Artist[44],song = top100songsv2$Track[44])
+song45<-genius_lyrics(artist=top100songsv2$Artist[45],song = top100songsv2$Track[45])
+song46<-genius_lyrics(artist=top100songsv2$Artist[46],song = top100songsv2$Track[46])
+song47<-genius_lyrics(artist=top100songsv2$Artist[47],song = top100songsv2$Track[47])
+song48<-genius_lyrics(artist=top100songsv2$Artist[48],song = top100songsv2$Track[48])
+song49<-genius_lyrics(artist=top100songsv2$Artist[49],song = top100songsv2$Track[49])
+song50<-genius_lyrics(artist=top100songsv2$Artist[50],song = top100songsv2$Track[50])
+song51<-genius_lyrics(artist=top100songsv2$Artist[51],song = top100songsv2$Track[51])
+song52<-genius_lyrics(artist=top100songsv2$Artist[52],song = top100songsv2$Track[52])
+#song53<-genius_lyrics(artist=top100songsv2$Artist[53],song = top100songsv2$Track[53])
+song54<-genius_lyrics(artist=top100songsv2$Artist[54],song = top100songsv2$Track[54])
+song55<-genius_lyrics(artist=top100songsv2$Artist[55],song = top100songsv2$Track[55])
+song56<-genius_lyrics(artist=top100songsv2$Artist[56],song = top100songsv2$Track[56])
+song57<-genius_lyrics(artist=top100songsv2$Artist[57],song = top100songsv2$Track[57])
+song58<-genius_lyrics(artist=top100songsv2$Artist[58],song = top100songsv2$Track[58])
+song59<-genius_lyrics(artist=top100songsv2$Artist[59],song = top100songsv2$Track[59])
+#song60<-genius_lyrics(artist=top100songsv2$Artist[60],song = top100songsv2$Track[60])
+song61<-genius_lyrics(artist=top100songsv2$Artist[61],song = top100songsv2$Track[61])
+song62<-genius_lyrics(artist=top100songsv2$Artist[62],song = top100songsv2$Track[62])
+song63<-genius_lyrics(artist=top100songsv2$Artist[63],song = top100songsv2$Track[63])
+song64<-genius_lyrics(artist=top100songsv2$Artist[64],song = top100songsv2$Track[64])
+song65<-genius_lyrics(artist=top100songsv2$Artist[65],song = top100songsv2$Track[65])
+song66<-genius_lyrics(artist=top100songsv2$Artist[66],song = top100songsv2$Track[66])
+song67<-genius_lyrics(artist=top100songsv2$Artist[67],song = top100songsv2$Track[67])
+song68<-genius_lyrics(artist=top100songsv2$Artist[68],song = top100songsv2$Track[68])
+song69<-genius_lyrics(artist=top100songsv2$Artist[69],song = top100songsv2$Track[69])
+song70<-genius_lyrics(artist=top100songsv2$Artist[70],song = top100songsv2$Track[70])
+song71<-genius_lyrics(artist=top100songsv2$Artist[71],song = top100songsv2$Track[71])
+song72<-genius_lyrics(artist=top100songsv2$Artist[72],song = top100songsv2$Track[72])
+song73<-genius_lyrics(artist=top100songsv2$Artist[73],song = top100songsv2$Track[73])
+song74<-genius_lyrics(artist=top100songsv2$Artist[74],song = top100songsv2$Track[74])
+song75<-genius_lyrics(artist=top100songsv2$Artist[75],song = top100songsv2$Track[75])
+song76<-genius_lyrics(artist=top100songsv2$Artist[76],song = top100songsv2$Track[76])
+song77<-genius_lyrics(artist=top100songsv2$Artist[77],song = top100songsv2$Track[77])
+#song78<-genius_lyrics(artist=top100songsv2$Artist[78],song = top100songsv2$Track[78])
+song79<-genius_lyrics(artist=top100songsv2$Artist[79],song = top100songsv2$Track[79])
+song80<-genius_lyrics(artist=top100songsv2$Artist[80],song = top100songsv2$Track[80])
+song81<-genius_lyrics(artist=top100songsv2$Artist[81],song = top100songsv2$Track[81])
+song82<-genius_lyrics(artist=top100songsv2$Artist[82],song = top100songsv2$Track[82])
+song83<-genius_lyrics(artist=top100songsv2$Artist[83],song = top100songsv2$Track[83])
+song84<-genius_lyrics(artist=top100songsv2$Artist[84],song = top100songsv2$Track[84])
+#song85<-genius_lyrics(artist=top100songsv2$Artist[85],song = top100songsv2$Track[85])
+song86<-genius_lyrics(artist=top100songsv2$Artist[86],song = top100songsv2$Track[86])
+song87<-genius_lyrics(artist=top100songsv2$Artist[87],song = top100songsv2$Track[87])
+song88<-genius_lyrics(artist=top100songsv2$Artist[88],song = top100songsv2$Track[88])
+song89<-genius_lyrics(artist=top100songsv2$Artist[89],song = top100songsv2$Track[89])
+song90<-genius_lyrics(artist=top100songsv2$Artist[90],song = top100songsv2$Track[90])
+#song91<-genius_lyrics(artist=top100songsv2$Artist[91],song = top100songsv2$Track[91])
+song92<-genius_lyrics(artist=top100songsv2$Artist[92],song = top100songsv2$Track[92])
+#song93<-genius_lyrics(artist=top100songsv2$Artist[93],song = top100songsv2$Track[93])
+#song94<-genius_lyrics(artist=top100songsv2$Artist[94],song = top100songsv2$Track[94])
+#song95<-genius_lyrics(artist=top100songsv2$Artist[95],song = top100songsv2$Track[95])
+song96<-genius_lyrics(artist=top100songsv2$Artist[96],song = top100songsv2$Track[96])
+song97<-genius_lyrics(artist=top100songsv2$Artist[97],song = top100songsv2$Track[97])
+song98<-genius_lyrics(artist=top100songsv2$Artist[98],song = top100songsv2$Track[98])
+song99<-genius_lyrics(artist=top100songsv2$Artist[99],song = top100songsv2$Track[99])
+song100<-genius_lyrics(artist=top100songsv2$Artist[100],song = top100songsv2$Track[100])
+```
+
+###NEEDS TO BE FIX PART 2
+```{r message=FALSE}
+song1sentiment <- song1 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song2sentiment <- song2 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song3sentiment <- song3 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song4sentiment <- song4 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song5sentiment <- song5 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song6sentiment <- song6 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song7sentiment <- song7 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song8sentiment <- song8 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song9sentiment <- song9 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song10sentiment <- song10 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song11sentiment <- song11 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song12sentiment <- song12 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song15sentiment <- song15 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song16sentiment <- song16 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song17sentiment <- song17 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song18sentiment <- song18 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song19sentiment <- song19 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song20sentiment <- song20 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song21sentiment <- song21 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song22sentiment <- song22 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song24sentiment <- song24 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song25sentiment <- song25 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song26sentiment <- song26 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song27sentiment <- song27 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song28sentiment <- song28 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song29sentiment <- song29 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song30sentiment <- song30 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song31sentiment <- song31 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song32sentiment <- song32 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song33sentiment <- song33 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song34sentiment <- song34 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song35sentiment <- song35 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song36sentiment <- song36 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song37sentiment <- song37 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song38sentiment <- song38 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song39sentiment <- song39 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song40sentiment <- song40 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song41sentiment <- song41 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song42sentiment <- song42 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song43sentiment <- song43 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song44sentiment <- song44 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song45sentiment <- song45 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song46sentiment <- song46 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song47sentiment <- song47 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song48sentiment <- song48 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song49sentiment <- song49 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song50sentiment <- song50 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song51sentiment <- song51 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song52sentiment <- song52 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song54sentiment <- song54 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song55sentiment <- song55 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song56sentiment <- song56 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song57sentiment <- song57 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song58sentiment <- song58 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song59sentiment <- song59 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song61sentiment <- song61 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song62sentiment <- song62 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song63sentiment <- song63 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song64sentiment <- song64 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song65sentiment <- song65 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song66sentiment <- song66 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song67sentiment <- song67 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song68sentiment <- song68 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song69sentiment <- song69 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song70sentiment <- song70 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song71sentiment <- song71 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song72sentiment <- song72 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song73sentiment <- song73 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song74sentiment <- song74 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song75sentiment <- song75 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song76sentiment <- song76 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song77sentiment <- song77 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song79sentiment <- song79 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song80sentiment <- song80 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song81sentiment <- song81 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song82sentiment <- song82 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song83sentiment <- song83 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song84sentiment <- song84 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song86sentiment <- song86 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song87sentiment <- song87 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song88sentiment <- song88 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song89sentiment <- song89 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song90sentiment <- song90 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song92sentiment <- song92 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song96sentiment <- song96 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song97sentiment <- song97 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song98sentiment <- song98 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song99sentiment <- song99 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+song100sentiment <- song100 %>% unnest_tokens(word, lyric) %>% select(word) %>% inner_join(lexicon) %>% summarise(score = sum(score))
+```
+
+###NEEDS TO BE FIX PART 3
+```{r}
+top100songsv2$Sentiment[1] <- song1sentiment$score[1]
+top100songsv2$Sentiment[2] <- song2sentiment$score[1]
+top100songsv2$Sentiment[3] <- song3sentiment$score[1]
+top100songsv2$Sentiment[4] <- song4sentiment$score[1]
+top100songsv2$Sentiment[5] <- song5sentiment$score[1]
+top100songsv2$Sentiment[6] <- song6sentiment$score[1]
+top100songsv2$Sentiment[7] <- song7sentiment$score[1]
+top100songsv2$Sentiment[8] <- song8sentiment$score[1]
+top100songsv2$Sentiment[9] <- song9sentiment$score[1]
+top100songsv2$Sentiment[10] <- song10sentiment$score[1]
+top100songsv2$Sentiment[11] <- song11sentiment$score[1]
+top100songsv2$Sentiment[12] <- song12sentiment$score[1]
+top100songsv2$Sentiment[13] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[14] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[15] <- song15sentiment$score[1]
+top100songsv2$Sentiment[16] <- song16sentiment$score[1]
+top100songsv2$Sentiment[17] <- song17sentiment$score[1]
+top100songsv2$Sentiment[18] <- song18sentiment$score[1]
+top100songsv2$Sentiment[19] <- song19sentiment$score[1]
+top100songsv2$Sentiment[20] <- song20sentiment$score[1]
+top100songsv2$Sentiment[21] <- song21sentiment$score[1]
+top100songsv2$Sentiment[22] <- song22sentiment$score[1]
+top100songsv2$Sentiment[23] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[24] <- song24sentiment$score[1]
+top100songsv2$Sentiment[25] <- song25sentiment$score[1]
+top100songsv2$Sentiment[26] <- song26sentiment$score[1]
+top100songsv2$Sentiment[27] <- song27sentiment$score[1]
+top100songsv2$Sentiment[28] <- song28sentiment$score[1]
+top100songsv2$Sentiment[29] <- song29sentiment$score[1]
+top100songsv2$Sentiment[30] <- song30sentiment$score[1]
+top100songsv2$Sentiment[31] <- song31sentiment$score[1]
+top100songsv2$Sentiment[32] <- song32sentiment$score[1]
+top100songsv2$Sentiment[33] <- song33sentiment$score[1]
+top100songsv2$Sentiment[34] <- song34sentiment$score[1]
+top100songsv2$Sentiment[35] <- song35sentiment$score[1]
+top100songsv2$Sentiment[36] <- song36sentiment$score[1]
+top100songsv2$Sentiment[37] <- song37sentiment$score[1]
+top100songsv2$Sentiment[38] <- song38sentiment$score[1]
+top100songsv2$Sentiment[39] <- song39sentiment$score[1]
+top100songsv2$Sentiment[40] <- song40sentiment$score[1]
+top100songsv2$Sentiment[41] <- song41sentiment$score[1]
+top100songsv2$Sentiment[42] <- song42sentiment$score[1]
+top100songsv2$Sentiment[43] <- song43sentiment$score[1]
+top100songsv2$Sentiment[44] <- song44sentiment$score[1]
+top100songsv2$Sentiment[45] <- song45sentiment$score[1]
+top100songsv2$Sentiment[46] <- song46sentiment$score[1]
+top100songsv2$Sentiment[47] <- song47sentiment$score[1]
+top100songsv2$Sentiment[48] <- song48sentiment$score[1]
+top100songsv2$Sentiment[49] <- song49sentiment$score[1]
+top100songsv2$Sentiment[50] <- song50sentiment$score[1]
+top100songsv2$Sentiment[51] <- song51sentiment$score[1]
+top100songsv2$Sentiment[52] <- song52sentiment$score[1]
+top100songsv2$Sentiment[53] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[54] <- song54sentiment$score[1]
+top100songsv2$Sentiment[55] <- song55sentiment$score[1]
+top100songsv2$Sentiment[56] <- song56sentiment$score[1]
+top100songsv2$Sentiment[57] <- song57sentiment$score[1]
+top100songsv2$Sentiment[58] <- song58sentiment$score[1]
+top100songsv2$Sentiment[59] <- song59sentiment$score[1]
+top100songsv2$Sentiment[60] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[61] <- song61sentiment$score[1]
+top100songsv2$Sentiment[62] <- song62sentiment$score[1]
+top100songsv2$Sentiment[63] <- song63sentiment$score[1]
+top100songsv2$Sentiment[64] <- song64sentiment$score[1]
+top100songsv2$Sentiment[65] <- song65sentiment$score[1]
+top100songsv2$Sentiment[66] <- song66sentiment$score[1]
+top100songsv2$Sentiment[67] <- song67sentiment$score[1]
+top100songsv2$Sentiment[68] <- song68sentiment$score[1]
+top100songsv2$Sentiment[69] <- song69sentiment$score[1]
+top100songsv2$Sentiment[70] <- song70sentiment$score[1]
+top100songsv2$Sentiment[71] <- song71sentiment$score[1]
+top100songsv2$Sentiment[72] <- song72sentiment$score[1]
+top100songsv2$Sentiment[73] <- song73sentiment$score[1]
+top100songsv2$Sentiment[74] <- song74sentiment$score[1]
+top100songsv2$Sentiment[75] <- song75sentiment$score[1]
+top100songsv2$Sentiment[76] <- song76sentiment$score[1]
+top100songsv2$Sentiment[77] <- song77sentiment$score[1]
+top100songsv2$Sentiment[78] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[79] <- song79sentiment$score[1]
+top100songsv2$Sentiment[80] <- song80sentiment$score[1]
+top100songsv2$Sentiment[81] <- song81sentiment$score[1]
+top100songsv2$Sentiment[82] <- song82sentiment$score[1]
+top100songsv2$Sentiment[83] <- song83sentiment$score[1]
+top100songsv2$Sentiment[84] <- song84sentiment$score[1]
+top100songsv2$Sentiment[85] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[86] <- song86sentiment$score[1]
+top100songsv2$Sentiment[87] <- song87sentiment$score[1]
+top100songsv2$Sentiment[88] <- song88sentiment$score[1]
+top100songsv2$Sentiment[89] <- song89sentiment$score[1]
+top100songsv2$Sentiment[90] <- song90sentiment$score[1]
+top100songsv2$Sentiment[91] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[92] <- song92sentiment$score[1]
+top100songsv2$Sentiment[93] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[94] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[95] <- top100songsv2$Sentiment[NA] #NO LYRICS
+top100songsv2$Sentiment[96] <- song96sentiment$score[1]
+top100songsv2$Sentiment[97] <- song97sentiment$score[1]
+top100songsv2$Sentiment[98] <- song98sentiment$score[1]
+top100songsv2$Sentiment[99] <- song99sentiment$score[1]
+top100songsv2$Sentiment[100] <- song100sentiment$score[1]
+```
+
+
+```{r}
+top100songsv2 %>% 
+  arrange(desc(TotalStreams)) %>% 
+  print()
+saveRDS(top100songsv2, "top100songsSENTIMENT.rds")
+```
+
+Best Sentiment
+```{r}
+top100songsv2 %>% 
+  arrange(desc(Sentiment)) %>% 
+  top_n(3)
+```
+
+Worse Sentiment
+```{r}
+top100songsv2 %>% 
+  arrange(Sentiment) %>% 
+  head(n=3)
+```
+
+
+
+```{r}
+barplot(table(top100songsv2$Sentiment))
+```
+
+
+
+
+
+
+
+
+
+

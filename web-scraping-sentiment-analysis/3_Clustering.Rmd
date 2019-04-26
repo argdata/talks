@@ -1,0 +1,81 @@
+---
+title: "Sentiment_Cluster_Analysis"
+author: "J Argueta"
+date: "4/25/2019"
+output: html_document
+---
+
+Load packages
+```{r}
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra) # clustering algorithms & visualization
+```
+
+Load Data
+```{r}
+sentiment <- readRDS("top100songsSENTIMENT.rds")
+```
+
+```{r}
+sentiment1 <- sentiment %>% 
+  na.omit() %>%                                   # listwise deletion of missing
+  mutate(Track_Artist = paste0(Track, " by ", Artist),
+         TotalStreamsScld = scale(TotalStreams),  # standardize variables
+         SentimentScld = scale(Sentiment)) %>%    # standardize variables
+  print()
+```
+
+```{r}
+sentiment2 <- sentiment1 %>% 
+  select(TotalStreamsScld, SentimentScld)
+```
+
+```{r}
+# Determine number of clusters
+wss <- (nrow(sentiment2)-1)*sum(apply(sentiment2,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(sentiment2, centers=i)$withinss)
+
+plot(1:15, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares")
+```
+
+```{r}
+dist_songs <- dist(sentiment2, method = "euclidean")
+hc_songs <- hclust(dist_songs, method = "complete")
+cluster_assignments <- cutree(hc_songs, k = 8)
+cluster_assignments2 <- as.data.frame(cluster_assignments)
+
+sentiment3 <- cbind(sentiment1, cluster_assignments2)
+```
+
+```{r}
+library(ggplot2)
+ggplot(sentiment3, aes(x=Sentiment, y=TotalStreams, color = factor(cluster_assignments), label = Track_Artist))+
+  geom_point()+
+  geom_text(check_overlap = TRUE)
+```
+
+
+```{r}
+data4 %>% 
+  filter(cluster_assignments == 5) %>% 
+  print()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

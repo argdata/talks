@@ -1,0 +1,268 @@
+---
+title: "Scraping Spotify"
+author: "Jorge Argueta (from Datacritics by Jake Daniels)"
+date: "10/7/2018"
+output: html_document
+---
+
+Remove Objects from Environment
+```{r}
+ls()
+rm(list = ls())
+```
+
+Load packages:
+
+```{r message=FALSE}
+library(rvest)#Easily Harvest (Scrape) Web Pages. html_nodes
+library(tidyverse)#Designed to make it easy to install and load multiple 'tidyverse' packages in a single step.
+library(magrittr)#A Forward-Pipe Operator for R
+library(scales)
+library(knitr)
+library(lubridate)#Lubridate provides tools that make it easier to parse and manipulate dates.
+library(ggrepel)#This package contains extra geoms for ggplot2.
+```
+
+This is the website where we are going to scrape the data:
+https://spotifycharts.com
+
+We are interested in the "US Top 200 daily hits". 
+/regional/us/daily
+
+From Jan 1st to Dec 31st for 2018.
+/YYYY-MM-DD
+
+
+Constant-----Constant-------Constant-------/Variable
+https://spotifycharts.com/regional/us/daily/2018-01-01
+https://spotifycharts.com/regional/us/daily/2018-12-31
+
+
+1. Create a fix url:
+```{r}
+url <- "https://spotifycharts.com/regional/us/daily/"
+```
+
+2. Define the date range in a sequence:
+```{r}
+timevalues <- seq(as.Date("2018/01/01"), as.Date("2018/12/31"), by = "day")
+head(timevalues);tail(timevalues)
+```
+
+3. Function to concatenate the fix constant + the sequence of dates:
+```{r}
+concat.url<- function(x){
+ full_url <- paste0(url, x)
+ full_url
+}
+#Run the function
+finalurl <- concat.url(timevalues)
+head(finalurl, n=2);tail(finalurl, n=2)
+```
+
+4. Create a function that reads HTML and exctracs HTML nodes.  We can use SelectorGadget (CHROME Extension) to get the node names or in Google Chrome "View>Developer>View Source <-|" and look for classes.
+
+
+a) rank:
+<td class="chart-table-position">
+  1
+</td>
+
+b) track and artist: 
+<td class="chart-table-track">
+    <strong>rockstar</strong>
+    <span>by Post Malone</span>
+</td>
+
+c) streams:
+<td class="chart-table-streams">
+  1,502,394
+</td>
+```{r}
+SpotifyScrape <- function(x){
+  page <- x
+  rank <- page %>%
+    read_html() %>% #Reads an HTML page
+    html_nodes('.chart-table-position') %>% #RVEST.PKG: extract pieces out of HTML docs. using XPath & css selectors.
+    html_text() %>% #RVEST.PKG:Extract attributes, text and tag name from html
+    as.data.frame()
+  track <- page %>% 
+    read_html() %>% 
+    html_nodes('strong') %>% 
+    html_text() %>% 
+    as.data.frame()
+  artist <- page %>% 
+    read_html() %>% 
+    html_nodes('.chart-table-track span') %>% 
+    html_text() %>% 
+    as.data.frame()
+  streams <- page %>% 
+    read_html() %>% 
+    html_nodes('td.chart-table-streams') %>% 
+    html_text() %>% 
+    as.data.frame()
+  dates <- page %>% 
+    read_html() %>% 
+    html_nodes('.responsive-select~ .responsive-select+ .responsive-select .responsive-select-value') %>%
+    html_text() %>% 
+    as.data.frame()
+
+#combine, name, and make it a tibble
+  chart <- cbind(rank, track, artist, streams, dates) #Combine R Objects by Columns
+  names(chart) <- c("Rank", "Track", "Artist", "Streams", "Date") #Functions to get or set the names of an object
+  chart <- as.tibble(chart)#TIBBLE.PKG:turns an existing object into a so-called tibble
+ return(chart) #Final tibble 5 columns & (200 rows * 365 days) = 73,000
+}
+```
+
+5. Scrape....scrape....scrape..this step will take a few minutes...
+```{r}
+#spotify <- map_df(finalurl, SpotifyScrape) #PURR.PGK:The map functions transform their input by applying a function to each element and returning a vector the same length as the input.
+#saveRDS(spotify, file = "spotifyRAW.rds")
+```
+
+6. Check data frame dimmension
+```{r}
+spotify <- readRDS("spotifyRAW.rds")
+dim(spotify)
+```
+
+```{r}
+head(spotify, n = 5)
+```
+
+
+7. Save our dataframe into an RDS file
+```{r}
+saveRDS(spotify, file = "Top200StreamsUSA2018RAW.rds")#Function to write a single R object to a file
+```
+
+```{r}
+head(spotify, n = 5)
+```
+
+
+7. Data cleaning, remove "by", "," and transform character values into dates
+```{r}
+spotify <- readRDS("Top200StreamsUSA2018RAW.rds")#Function to read a single R object from a file
+
+spotify %<>% 
+  mutate( Artist = gsub("by ", "", Artist), #gsub perform replacement of the first and all matches respectively
+          Streams = gsub(",", "", Streams), 
+          Streams = as.numeric(Streams), 
+          Date = as.Date(spotify$Date, "%m/%d/%Y"),
+          WeekDay = wday(Date, label = TRUE),#LUBRIDATE.PKG:Get days component of a date-time
+          Month = month(Date, label = TRUE)
+          )
+```
+
+```{r}
+head(spotify)
+```
+
+8. Descriptive statistics
+```{r}
+by_streams <- spotify %>% 
+  group_by(Track) %>%
+  summarise(TotalStreams = sum(Streams)) %>% 
+  arrange(desc(TotalStreams)) %>%
+  top_n(20) %>% 
+  print()
+
+
+by_streams %>%
+  ggplot(aes(reorder(Track, TotalStreams), y = TotalStreams)) +
+  geom_col(fill = "sky blue") +
+  #geom_label_repel(aes(label = total), size = 3) +
+  coord_flip() +
+  labs(title = 'US 2018 | Most Streamed Songs | Gods Plan reached 453M',
+      x = "Track Name",
+      y = "Total Streams")
+```
+
+```{r}
+by_artist <- spotify %>% 
+  group_by(Artist) %>%
+  summarise(TotalStreams = sum(Streams)) %>% 
+  arrange(desc(TotalStreams)) %>% 
+  top_n(20) %>% 
+  print()
+
+by_artist %>%
+  ggplot(aes(reorder(Artist, TotalStreams), y = TotalStreams)) +
+  geom_col(fill = "sky blue") +
+  #geom_label_repel(aes(label = TotalStreams), size = 3) +
+  coord_flip() +
+  labs(title = 'US 2018 | Most streamed Artist | Post Malone reached 2.2 billion',
+      x = "Artist Name",
+      y = "Total Streams")
+```
+
+
+```{r}
+by_WeekDay <- spotify %>% 
+  group_by(WeekDay) %>%
+  summarise(TotalStreams = sum(Streams)) %>% 
+  arrange(desc(TotalStreams)) %>% 
+  print()
+
+
+ggplot(data=by_WeekDay, aes(x=WeekDay, y=TotalStreams, group=1)) +
+  geom_line(linetype = "dashed")+
+  geom_point()+
+  labs(title = 'US 2018 | Most streamed Week Day | Friday reached 4.9 Billion', #4,920,574,180
+  x = "Day of the Week",
+  y = "Total Streams")
+```
+
+```{r}
+by_Month <- spotify %>% 
+  group_by(Month) %>%
+  summarise(TotalStreams = sum(Streams)) %>% 
+  arrange(desc(TotalStreams)) %>% 
+  print()
+
+
+ggplot(data=by_Month, aes(x=Month, y=TotalStreams, group=1)) +
+  geom_line(linetype = "dashed")+
+  geom_point()+
+  labs(title = 'US 2018 | Most streamed Month | December reached 2.8 Billion', # 2,803,948,705
+  x = "Month",
+  y = "Total Streams")
+```
+
+9. Keep only the top 100 most streamed Tracks for 2018 in USA:
+```{r}
+#Group by track and sum Total Streams
+by_streams2 <- spotify %>% 
+  group_by(Track) %>%
+  summarise(TotalStreams = sum(Streams)) %>% 
+  arrange(desc(TotalStreams)) %>%
+  top_n(100)
+
+#Create a df with unique tracks and artists
+spotify2 <- spotify %>% 
+  select(Track, Artist) %>% 
+  distinct(Track, Artist)
+
+#Left join to prep our data and get the lyrics
+top100songs <- left_join(by_streams2, spotify2, by = "Track") %>% 
+  arrange(desc(TotalStreams)) %>% 
+  select(Artist, Track, TotalStreams) %>%
+  filter (! duplicated(TotalStreams)) %>% 
+  print()
+```
+
+```{r}
+saveRDS(top100songs, file = "top100songs.rds")
+```
+
+
+
+
+
+
+
+
+
+
