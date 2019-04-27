@@ -117,28 +117,16 @@ SpotifyScrape <- function(x){
 
 5. Scrape....scrape....scrape..this step will take a few minutes...
 ```{r}
-#spotify <- map_df(finalurl, SpotifyScrape) #PURR.PGK:The map functions transform their input by applying a function to each element and returning a vector the same length as the input.
-#saveRDS(spotify, file = "spotifyRAW.rds")
+spotify <- map_df(finalurl, SpotifyScrape) #PURR.PGK:The map functions transform their input by applying a function to each element and returning a vector the same length as the input.
 ```
 
 6. Check data frame dimmension
 ```{r}
-spotify <- readRDS("spotifyRAW.rds")
 dim(spotify)
 ```
 
 ```{r}
-head(spotify, n = 5)
-```
-
-
-7. Save our dataframe into an RDS file
-```{r}
-saveRDS(spotify, file = "Top200StreamsUSA2018RAW.rds")#Function to write a single R object to a file
-```
-
-```{r}
-head(spotify, n = 5)
+head(spotify, n = 10)
 ```
 
 

@@ -8,7 +8,7 @@ output: html_document
 Load packages
 ```{r}
 library(tidyverse)  # data manipulation
-library(cluster)    # clustering algorithms
+library(stats)    # clustering algorithms
 library(factoextra) # clustering algorithms & visualization
 ```
 
@@ -23,6 +23,7 @@ sentiment1 <- sentiment %>%
   mutate(Track_Artist = paste0(Track, " by ", Artist),
          TotalStreamsScld = scale(TotalStreams),  # standardize variables
          SentimentScld = scale(Sentiment)) %>%    # standardize variables
+  select(Track_Artist,TotalStreams, Sentiment, TotalStreamsScld, SentimentScld ) %>% 
   print()
 ```
 
@@ -46,13 +47,17 @@ cluster_assignments <- cutree(hc_songs, k = 8)
 cluster_assignments2 <- as.data.frame(cluster_assignments)
 
 sentiment3 <- cbind(sentiment1, cluster_assignments2)
+
+sentiment4 <- sentiment3 %>% 
+  mutate(TotalStreams = TotalStreams/1000000)
+
 ```
 
 ```{r}
 library(ggplot2)
-ggplot(sentiment3, aes(x=Sentiment, y=TotalStreams, color = factor(cluster_assignments), label = Track_Artist))+
+ggplot(sentiment4, aes(x=Sentiment, y=TotalStreams, color = factor(cluster_assignments), label = Track_Artist))+
   geom_point()+
-  geom_text(check_overlap = TRUE)
+  geom_text(check_overlap = TRUE, size = 7)
 ```
 
 
