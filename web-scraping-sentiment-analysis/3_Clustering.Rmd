@@ -1,21 +1,31 @@
 ---
-title: "Sentiment_Cluster_Analysis"
+title: "Step 3 | Hierarchical Cluster Analysis"
 author: "J Argueta"
 date: "4/25/2019"
 output: html_document
 ---
 
+Remove Objects from Environment
+```{r message=FALSE, warning=FALSE}
+ls()
+rm(list = ls())
+```
+
 Load packages
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)  # data manipulation
 library(stats)    # clustering algorithms
 library(factoextra) # clustering algorithms & visualization
 ```
 
-Load Data
+### 1. Load Data from step 2: top100songsSENTIMENT.rds
 ```{r}
 sentiment <- readRDS("top100songsSENTIMENT.rds")
+head(sentiment)
 ```
+### 2. Prepare data for clustering.  
+
+Prior to clustering data, you may want to remove or estimate missing data and rescale variables for comparability.  
 
 ```{r}
 sentiment1 <- sentiment %>% 
@@ -23,22 +33,22 @@ sentiment1 <- sentiment %>%
   mutate(Track_Artist = paste0(Track, " by ", Artist),
          TotalStreamsScld = scale(TotalStreams),  # standardize variables
          SentimentScld = scale(Sentiment)) %>%    # standardize variables
-  select(Track_Artist,TotalStreams, Sentiment, TotalStreamsScld, SentimentScld ) %>% 
-  print()
+  select(Track_Artist,TotalStreams, Sentiment, TotalStreamsScld, SentimentScld )
 ```
 
+### 3. Keep only TotalStreamsScld and SentimentScld to determine number of clusters.
+
+A plot of the within groups sum of squares by number of clusters extracted can help determine the appropriate number of clusters. The analyst looks for a bend in the plot similar to a scree test in factor analysis.  https://www.statmethods.net/about/books.html
 ```{r}
 sentiment2 <- sentiment1 %>% 
   select(TotalStreamsScld, SentimentScld)
-```
-
-```{r}
 # Determine number of clusters
 wss <- (nrow(sentiment2)-1)*sum(apply(sentiment2,2,var))
 for (i in 2:15) wss[i] <- sum(kmeans(sentiment2, centers=i)$withinss)
 
 plot(1:15, wss, type="b", xlab="Number of Clusters",ylab="Within groups sum of squares")
 ```
+
 
 ```{r}
 dist_songs <- dist(sentiment2, method = "euclidean")
@@ -49,23 +59,25 @@ cluster_assignments2 <- as.data.frame(cluster_assignments)
 sentiment3 <- cbind(sentiment1, cluster_assignments2)
 
 sentiment4 <- sentiment3 %>% 
-  mutate(TotalStreams = TotalStreams/1000000)
+  mutate(TotalStreamsMillions = TotalStreams/1000000)
 
 ```
 
+
+### 4. Visualize the final result.
+
+You were able to summarize 73,000 rows of data in two dimensions. PREETY COOL RIGHT!!!
+
+Which cluster will you pick to advertise? Or which cluster will you play at the next house party? :)
 ```{r}
 library(ggplot2)
-ggplot(sentiment4, aes(x=Sentiment, y=TotalStreams, color = factor(cluster_assignments), label = Track_Artist))+
+ggplot(sentiment4, aes(x=Sentiment, y=TotalStreamsMillions, color = factor(cluster_assignments), label = Track_Artist))+
   geom_point()+
-  geom_text(check_overlap = TRUE, size = 7)
+  geom_text(check_overlap = TRUE, size = 4)
 ```
 
 
-```{r}
-data4 %>% 
-  filter(cluster_assignments == 5) %>% 
-  print()
-```
+
 
 
 

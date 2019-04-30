@@ -1,17 +1,17 @@
 ---
-title: "Sentiment_Analysis"
+title: "Step 2 | Sentiment_Analysis"
 author: "J Argueta"
 date: "4/24/2019"
 output: html_document
 ---
 
 Remove Objects from Environment
-```{r}
+```{r message=FALSE}
 ls()
 rm(list = ls())
 ```
 
-Load packages
+Load packages and lexicon.
 ```{r message=FALSE}
 library(genius)#Add lyrics to a data frame
 library(dplyr)
@@ -20,12 +20,12 @@ lexicon <- get_sentiments("afinn")
 glimpse(lexicon)
 ```
 
-1. Load data
+### 1. Load data from step 1: top100songs.rds
 ```{r}
 top100songs <- readRDS("top100songs.rds")
 ```
 
-2. Data cleaning
+### 2. Data cleaning: The Genius package doesn't like special characters
 ```{r}
 top100songsv2 <- top100songs %>% 
   mutate( Track = gsub("'", "", Track), #remove '
@@ -34,16 +34,17 @@ top100songsv2 <- top100songs %>%
 head(top100songsv2)
 ```
 
+### 3. Extract lyrics for the Top 100 songs and summarise sentiment.   
 
 This function will do the following:  
-1. Pull lyrics by Artist and track  
+1. Pull the lyrics from the top 100 songs data frame by Artist and Track  
 2. Sumarise the score of each track  
 
-This process may take a minute or two...
-```{r}
-sentiments <- sapply(
-  X = 1:5 
-  #X = 1:nrow(top100songsv2)
+This process may take a 3 to 4 seconds per song, depending on the speed of your ISP. Also, keep in mind that not all artists may have lyrics as an output.
+```{r message=FALSE, warning=FALSE}
+Sentiment <- sapply(
+  #X = 1:5 
+  X = 1:nrow(top100songsv2)
   , FUN = function(row_num, topSongTBL){
       
       sentiment <- NA
@@ -69,11 +70,14 @@ sentiments <- sapply(
   }
   , topSongTBL = top100songsv2
 )
-print(as.data.frame(Sentiment))
+print(head(as.data.frame(Sentiment)))
 ```
 
 
+### Save the final result in an RDS file top100songsSENTIMENT.rds.
 ```{r}
-cbind(top100songsv2, sentiments)
+top100songsSENTIMENT <- cbind(top100songsv2, Sentiment)
+saveRDS(top100songsSENTIMENT, "top100songsSENTIMENT.rds")
+head(top100songsSENTIMENT)
 ```
 

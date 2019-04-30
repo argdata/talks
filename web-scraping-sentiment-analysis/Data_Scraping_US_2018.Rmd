@@ -1,5 +1,5 @@
 ---
-title: "Scraping Spotify"
+title: "Step 1/3 | Scraping Spotify Data"
 author: "Jorge Argueta (from Datacritics by Jake Daniels)"
 date: "10/7/2018"
 output: html_document
@@ -23,33 +23,30 @@ library(lubridate)#Lubridate provides tools that make it easier to parse and man
 library(ggrepel)#This package contains extra geoms for ggplot2.
 ```
 
-This is the website where we are going to scrape the data:
-https://spotifycharts.com
+### Data Scraping:
 
-We are interested in the "US Top 200 daily hits". 
-/regional/us/daily
+This is the URL from where we are going to scrape the data: https://spotifycharts.com/regional/us/daily/YYYY-MM-DD  
 
-From Jan 1st to Dec 31st for 2018.
-/YYYY-MM-DD
+We are interested in the "US Top 200 daily hits" playlist. From Jan 1st to Dec 31st for 2018.
 
+As you can see, the URL is a constant and all that changes over day 1 and day 365 is the date: YYYY-MM-DD  
 
-Constant-----Constant-------Constant-------/Variable
 https://spotifycharts.com/regional/us/daily/2018-01-01
 https://spotifycharts.com/regional/us/daily/2018-12-31
 
 
-1. Create a fix url:
+### 1. Create a fix URL:
 ```{r}
 url <- "https://spotifycharts.com/regional/us/daily/"
 ```
 
-2. Define the date range in a sequence:
+### 2. Define the date range in a sequence:
 ```{r}
 timevalues <- seq(as.Date("2018/01/01"), as.Date("2018/12/31"), by = "day")
 head(timevalues);tail(timevalues)
 ```
 
-3. Function to concatenate the fix constant + the sequence of dates:
+### 3. Create a function to concatenate the fix constant + the sequence of dates:
 ```{r}
 concat.url<- function(x){
  full_url <- paste0(url, x)
@@ -60,24 +57,10 @@ finalurl <- concat.url(timevalues)
 head(finalurl, n=2);tail(finalurl, n=2)
 ```
 
-4. Create a function that reads HTML and exctracs HTML nodes.  We can use SelectorGadget (CHROME Extension) to get the node names or in Google Chrome "View>Developer>View Source <-|" and look for classes.
+### 4. Create a function that reads HTML and exctracs HTML nodes.  
 
-
-a) rank:
-<td class="chart-table-position">
-  1
-</td>
-
-b) track and artist: 
-<td class="chart-table-track">
-    <strong>rockstar</strong>
-    <span>by Post Malone</span>
-</td>
-
-c) streams:
-<td class="chart-table-streams">
-  1,502,394
-</td>
+We can use SelectorGadget (CHROME Extension) to get the node names, is a point and click tool that is very handy or in Google Chrome go to "View>Developer>View Source <-|" and look for classes.  
+ 
 ```{r}
 SpotifyScrape <- function(x){
   page <- x
@@ -115,13 +98,19 @@ SpotifyScrape <- function(x){
 }
 ```
 
-5. Scrape....scrape....scrape..this step will take a few minutes...
-```{r}
-spotify <- map_df(finalurl, SpotifyScrape) #PURR.PGK:The map functions transform their input by applying a function to each element and returning a vector the same length as the input.
+### 5. Scrape....scrape....scrape..this step will take a few minutes...
+
+Uncomment the code below:
+```{r message=FALSE, warning=FALSE}
+#spotify <- map_df(finalurl, SpotifyScrape) #PURR.PGK:The map functions transform their input by applying a function to each element and returning a vector the same length as the input.
+#saveRDS(spotify, "spotifyRAW.rds")
 ```
 
-6. Check data frame dimmension
+### 6. Check data frame dimmension:
+
+The final tibble should have 5 columns & (200 rows * 365 days) 73,000 rows  
 ```{r}
+spotify <- readRDS("spotifyRAW.rds")
 dim(spotify)
 ```
 
@@ -130,10 +119,12 @@ head(spotify, n = 10)
 ```
 
 
-7. Data cleaning, remove "by", "," and transform character values into dates
-```{r}
-spotify <- readRDS("Top200StreamsUSA2018RAW.rds")#Function to read a single R object from a file
+### 7. Data cleaning
 
+a) Remove "by" and ","  
+b) Transform character values into dates
+c) Extract the day of the week and month out of the date variable  
+```{r}
 spotify %<>% 
   mutate( Artist = gsub("by ", "", Artist), #gsub perform replacement of the first and all matches respectively
           Streams = gsub(",", "", Streams), 
@@ -141,22 +132,20 @@ spotify %<>%
           Date = as.Date(spotify$Date, "%m/%d/%Y"),
           WeekDay = wday(Date, label = TRUE),#LUBRIDATE.PKG:Get days component of a date-time
           Month = month(Date, label = TRUE)
-          )
+          ) %>% 
+  print()
 ```
 
-```{r}
-head(spotify)
-```
 
-8. Descriptive statistics
+### 8. Let's find some insights with descriptive statistics  
+
+#### Most streamed songs
 ```{r}
 by_streams <- spotify %>% 
   group_by(Track) %>%
   summarise(TotalStreams = sum(Streams)) %>% 
   arrange(desc(TotalStreams)) %>%
-  top_n(20) %>% 
-  print()
-
+  top_n(20) 
 
 by_streams %>%
   ggplot(aes(reorder(Track, TotalStreams), y = TotalStreams)) +
@@ -168,13 +157,14 @@ by_streams %>%
       y = "Total Streams")
 ```
 
+
+#### Most streamed artists  
 ```{r}
 by_artist <- spotify %>% 
   group_by(Artist) %>%
   summarise(TotalStreams = sum(Streams)) %>% 
   arrange(desc(TotalStreams)) %>% 
-  top_n(20) %>% 
-  print()
+  top_n(20)
 
 by_artist %>%
   ggplot(aes(reorder(Artist, TotalStreams), y = TotalStreams)) +
@@ -187,6 +177,7 @@ by_artist %>%
 ```
 
 
+#### Most streamed day of the week    
 ```{r}
 by_WeekDay <- spotify %>% 
   group_by(WeekDay) %>%
@@ -203,6 +194,8 @@ ggplot(data=by_WeekDay, aes(x=WeekDay, y=TotalStreams, group=1)) +
   y = "Total Streams")
 ```
 
+
+#### Most streamed month of the year    
 ```{r}
 by_Month <- spotify %>% 
   group_by(Month) %>%
@@ -219,7 +212,7 @@ ggplot(data=by_Month, aes(x=Month, y=TotalStreams, group=1)) +
   y = "Total Streams")
 ```
 
-9. Keep only the top 100 most streamed Tracks for 2018 in USA:
+### 9. Keep & save only the top 100 most streamed Tracks for 2018 in USA:
 ```{r}
 #Group by track and sum Total Streams
 by_streams2 <- spotify %>% 
